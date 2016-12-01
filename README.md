@@ -1,0 +1,1 @@
+[![Build Status](https://travis-ci.org/karlicoss/checker-fenum-android-demo.svg?branch=master)](https://travis-ci.org/karlicoss/checker-fenum-android-demo)
