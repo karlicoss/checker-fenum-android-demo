@@ -4,13 +4,16 @@ import android.app.Activity;
 import android.database.Cursor;
 import android.util.Log;
 
+import com.github.karlicoss.checker_example_annotations.FolderId;
+import com.github.karlicoss.checker_example_annotations.MessageId;
+
 
 public class MainActivity extends Activity {
 
     /**
      * @return count of messages in the specified folder
      */
-    public static long getMessagesCount(long folderId) {
+    public static long getMessagesCount(@FolderId long folderId) {
         Cursor result = null; // SQL count(*) query goes here
         return result.getLong(0);
     }
@@ -18,11 +21,13 @@ public class MainActivity extends Activity {
     /**
      * @return folder of the specified message
      */
-    public static long getFolderId(long messageId) {
+    @FolderId
+    public static long getFolderId(@MessageId long messageId) {
         Cursor result = null; // SQL query filtering message by id and projecting folderId goes here
         return result.getLong(0);
     }
 
+    @MessageId
     public static long getLastUnreadMessage() {
         Cursor result = null; // SQL querying last unread message goes here
         return result.getLong(0);

@@ -1,1 +1,1 @@
-include ':fenum-android-demo'
+include ':fenum-android-demo', ':checker-annotations'
