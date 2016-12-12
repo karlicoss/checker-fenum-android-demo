@@ -39,3 +39,7 @@ cache:
 
 script:
   - ./gradlew clean build
+  # quick way to check that Fenum checking works
+  # if Fenum checker didn't report anything, grep returns non-zero value and build fails
+  - ./gradlew clean checkFenumsDebug 2>&1 | grep "incompatible types in argument"
+  - ./gradlew clean checkFenumsRelease 2>&1 | grep "incompatible types in argument"
