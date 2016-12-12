@@ -11,6 +11,6 @@ repositories {
 }
 
 dependencies {
-    def checkerFrameworkVersion = '2.1.4'
+    def checkerFrameworkVersion = '2.1.6'
     compile "org.checkerframework:checker-qual:${checkerFrameworkVersion}"
 }

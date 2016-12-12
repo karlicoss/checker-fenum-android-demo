@@ -25,3 +25,81 @@ android {
 dependencies {
     provided project(':checker-annotations')
 }
+
+
+configurations {
+    checkerFrameworkJavac {
+        description = 'a customization of the OpenJDK javac compiler with additional support for type annotations'
+    }
+    checkerFrameworkAnnotatedJDK {
+        description = 'a copy of JDK classes with Checker Framework type qualifers inserted'
+    }
+    checkerFramework {
+        description = 'The Checker Framework: custom pluggable types for Java'
+    }
+}
+
+dependencies {
+    def checkerFrameworkVersion = '2.1.6'
+    def jdkVersion = JavaVersion.current().isJava7() ? 'jdk7' : 'jdk8'
+    checkerFrameworkAnnotatedJDK "org.checkerframework:${jdkVersion}:${checkerFrameworkVersion}"
+    checkerFrameworkJavac "org.checkerframework:compiler:${checkerFrameworkVersion}"
+    checkerFramework "org.checkerframework:checker:${checkerFrameworkVersion}"
+    checkerFrameworkJavac project(':checker-annotations')
+    checkerFramework project(':checker-annotations')
+}
+
+def annotations = [
+        'FolderId',
+        'MessageId',
+].collect { name -> 'com.github.karlicoss.checker_example_annotations.' + name }
+
+project.afterEvaluate {
+    def variants
+    if (project.plugins.hasPlugin(com.android.build.gradle.AppPlugin)) {
+        def app = project.extensions.getByType(com.android.build.gradle.AppExtension)
+        variants = app.getApplicationVariants()
+    } else if (project.plugins.hasPlugin(com.android.build.gradle.LibraryPlugin)) {
+        def lib = project.extensions.getByType(com.android.build.gradle.LibraryExtension)
+        variants = lib.getLibraryVariants()
+    } else {
+        throw new GradleException('You must apply Android application plugin or Android library plugin first!')
+    }
+
+    variants.all { variant ->
+        def compileTask = variant.javaCompile
+
+        /*
+            Fenum checker is basically default JavaCompileTask with some additional compiler arguments.
+            I don't want to mess with the original task, so I copy it first.
+            TODO does someone know a better way of copying task? Let me know! Couldn't find any cloning method.
+         */
+        def fenumTask = project.task(
+                "checkFenums${variant.name.capitalize()}",
+                type: JavaCompile,
+                dependsOn: compileTask.getTaskDependencies()
+        ) {
+            source = compileTask.source
+            classpath = compileTask.classpath
+            destinationDir = new File(project.buildDir, 'checker-classes-ignore')
+            options.compilerArgs = compileTask.options.compilerArgs
+            options.bootClasspath = compileTask.options.bootClasspath
+        }
+        /*
+            Now, configure Checker Framework for this new task
+            Based on official Gradle example
+            https://github.com/typetools/checker-framework/blob/master/checker/examples/GradleExamples/GradleJava7Example/build.gradle
+         */
+        fenumTask.options.compilerArgs += [
+            '-processor', 'org.checkerframework.checker.fenum.FenumChecker',
+            '-Aquals=' + annotations.join(','),
+            '-processorpath', "${configurations.checkerFramework.asPath}",
+//            '-Awarns', // uncomment to turn Checker Framework errors into warnings
+            "-Xbootclasspath/p:${configurations.checkerFrameworkAnnotatedJDK.asPath}"
+        ]
+        fenumTask.options.bootClasspath = (
+                System.getProperty("sun.boot.class.path") + ":" +
+                "${configurations.checkerFrameworkJavac.asPath}" + ":"
+        ) + fenumTask.options.bootClasspath
+    }
+}

@@ -10,6 +10,8 @@ import com.github.karlicoss.checker_example_annotations.MessageId;
 
 public class MainActivity extends Activity {
 
+    private static final String FENUM_RETURN_TYPE = "fenum:return.type.incompatible";
+
     /**
      * @return count of messages in the specified folder
      */
@@ -21,12 +23,14 @@ public class MainActivity extends Activity {
     /**
      * @return folder of the specified message
      */
+    @SuppressWarnings(FENUM_RETURN_TYPE)
     @FolderId
     public static long getFolderId(@MessageId long messageId) {
         Cursor result = null; // SQL query filtering message by id and projecting folderId goes here
         return result.getLong(0);
     }
 
+    @SuppressWarnings(FENUM_RETURN_TYPE)
     @MessageId
     public static long getLastUnreadMessage() {
         Cursor result = null; // SQL querying last unread message goes here
