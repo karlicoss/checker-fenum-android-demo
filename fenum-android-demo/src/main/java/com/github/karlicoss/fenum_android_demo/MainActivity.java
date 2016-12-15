@@ -7,6 +7,8 @@ import android.util.Log;
 import com.github.karlicoss.checker_example_annotations.FolderId;
 import com.github.karlicoss.checker_example_annotations.MessageId;
 
+import java.util.Collection;
+
 
 public class MainActivity extends Activity {
 
@@ -63,7 +65,35 @@ public class MainActivity extends Activity {
         long folderId = getFolderId(lastMessageId);
         long c = getMessagesCount(folderId);
         long count = getMessagesCount(c);
-        // oops, we pased plain long instead of folder ID
+        // oops, we passed plain long instead of folder ID
         Log.d("TAG", "Count: " + count);
+    }
+
+    // unfortunately, due to type annotations being Java 8 feature, we can't use them...
+    // still, checker framework processes comments
+    public static long getTotalMessagesCount_good(Collection</*@FolderId*/ Long> ids) {
+        long sum = 0;
+        // everything ok, with no annotations in for loop, Fenum checker is able to infer @FolderId
+        for (Long id : ids) {
+            sum += getMessagesCount(id);
+        }
+        return sum;
+    }
+
+    public static long getTotalMessagesCount_bad1(Collection<Long> ids) {
+        long sum = 0;
+        // oops, we forgot to specify @FolderId on collection elements
+        for (@FolderId Long id : ids) {
+            sum += getMessagesCount(id);
+        }
+        return sum;
+    }
+
+    public static long getTotalMessagesCount_bad2(Collection</*@FolderId*/ Long> ids) {
+        long sum = 0;
+        for (Long id : ids) {
+            sum += getFolderId(id); // oops, we passed folder id for function expecting message ID
+        }
+        return sum;
     }
 }
