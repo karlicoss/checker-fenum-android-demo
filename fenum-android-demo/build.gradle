@@ -26,6 +26,11 @@ dependencies {
     provided project(':checker-annotations')
 }
 
+// you have to pass the annotation class names to be used by the Fenum checker
+def annotations = [
+        'FolderId',
+        'MessageId',
+].collect { name -> 'com.github.karlicoss.checker_example_annotations.' + name }
 
 configurations {
     checkerFrameworkJavac {
@@ -48,11 +53,6 @@ dependencies {
     checkerFrameworkJavac project(':checker-annotations')
     checkerFramework project(':checker-annotations')
 }
-
-def annotations = [
-        'FolderId',
-        'MessageId',
-].collect { name -> 'com.github.karlicoss.checker_example_annotations.' + name }
 
 project.afterEvaluate {
     def variants
