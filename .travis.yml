@@ -12,10 +12,10 @@ jdk:
 
 env:
   global:
-    - BUILD_TOOLS_VERSION=23.0.3
-    - COMPILE_SDK_VERSION=23
+    - BUILD_TOOLS_VERSION=26.0.2
+    - COMPILE_SDK_VERSION=27
   matrix:
-    - ANDROID_TARGET_VERSION=23
+    - ANDROID_TARGET_VERSION=27
 
 
 android:
@@ -38,8 +38,8 @@ cache:
     - $HOME/.gradle/wrapper/
 
 script:
+  # err, that emits some weird stack trace; doesn't impact the buld status however
   - ./gradlew clean build
-  # quick way to check that Fenum checking works
-  # if Fenum checker didn't report anything, grep returns non-zero value and build fails
-  - ./gradlew clean checkFenumsDebug 2>&1 | grep "incompatible types in argument"
-  - ./gradlew clean checkFenumsRelease 2>&1 | grep "incompatible types in argument"
+  # quick & dirty way to check that Fenum checking works
+  - if [[ $(./gradlew checkFenumsDebug 2>&1   | grep -c "CI_ERROR_TAG") -ne 6 ]]; then false; fi
+  - if [[ $(./gradlew checkFenumsRelease 2>&1 | grep -c "CI_ERROR_TAG") -ne 6 ]]; then false; fi
