@@ -2,8 +2,8 @@ version '1.0-SNAPSHOT' // TODO
 
 apply plugin: 'java'
 
-sourceCompatibility = 1.7
-targetCompatibility = 1.7
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
 
 repositories {
@@ -11,6 +11,6 @@ repositories {
 }
 
 dependencies {
-    def checkerFrameworkVersion = '2.1.6'
+    def checkerFrameworkVersion = '2.4.0'
     compile "org.checkerframework:checker-qual:${checkerFrameworkVersion}"
 }
