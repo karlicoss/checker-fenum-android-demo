@@ -47,7 +47,7 @@ public class MainActivity extends Activity {
     }
 
     public static void getMessagesCount_bad1() {
-        long folderId = getFolderId(0);
+        long folderId = getFolderId(0); // CI_ERROR_TAG
         // oops, we passed an arbitrary long instead of actual message id
         long count = getMessagesCount(folderId);
         Log.d("TAG", "Count: " + count);
@@ -55,7 +55,7 @@ public class MainActivity extends Activity {
 
     public static void getMessagesCount_bad2() {
         long lastMessageId = getLastUnreadMessage();
-        long count = getMessagesCount(lastMessageId);
+        long count = getMessagesCount(lastMessageId); // CI_ERROR_TAG
         // oops, we passed message id instead of folder id
         Log.d("TAG", "Count: " + count);
     }
@@ -64,14 +64,13 @@ public class MainActivity extends Activity {
         long lastMessageId = getLastUnreadMessage();
         long folderId = getFolderId(lastMessageId);
         long c = getMessagesCount(folderId);
-        long count = getMessagesCount(c);
+        long count = getMessagesCount(c); // CI_ERROR_TAG
         // oops, we passed plain long instead of folder ID
         Log.d("TAG", "Count: " + count);
     }
 
-    // unfortunately, due to type annotations being Java 8 feature, we can't use them...
     // still, checker framework processes comments
-    public static long getTotalMessagesCount_good(Collection</*@FolderId*/ Long> ids) {
+    public static long getTotalMessagesCount_good(Collection<@FolderId Long> ids) {
         long sum = 0;
         // everything ok, with no annotations in for loop, Fenum checker is able to infer @FolderId
         for (Long id : ids) {
@@ -83,17 +82,19 @@ public class MainActivity extends Activity {
     public static long getTotalMessagesCount_bad1(Collection<Long> ids) {
         long sum = 0;
         // oops, we forgot to specify @FolderId on collection elements
-        for (@FolderId Long id : ids) {
+        for (@FolderId Long id : ids) {  // CI_ERROR_TAG
             sum += getMessagesCount(id);
         }
         return sum;
     }
 
-    public static long getTotalMessagesCount_bad2(Collection</*@FolderId*/ Long> ids) {
+    public static long getTotalMessagesCount_bad2(Collection<@FolderId Long> ids) {
         long sum = 0;
         for (Long id : ids) {
-            sum += getFolderId(id); // oops, we passed folder id for function expecting message ID
+            // oops, we passed folder id for function expecting message ID
+            sum += getFolderId(id);  // CI_ERROR_TAG
         }
-        return sum;
+        // oops, we were adding some crap to long instead of regular longs
+        return sum; // CI_ERROR_TAG
     }
 }
