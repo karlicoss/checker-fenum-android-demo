@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 23
-    buildToolsVersion '23.0.3'
+    buildToolsVersion '26.0.2'
 
     defaultConfig {
         applicationId "com.github.karlicoss.checker_fenum_android_demo"
@@ -23,7 +23,7 @@ android {
 }
 
 dependencies {
-    provided project(':checker-annotations')
+    compileOnly project(':checker-annotations')
 }
 
 // you have to pass the annotation class names to be used by the Fenum checker

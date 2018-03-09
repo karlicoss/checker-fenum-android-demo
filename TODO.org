@@ -1,0 +1,1 @@
+./gradlew checkFenumsDebug -- doesnt work on clean project; had to run build first
