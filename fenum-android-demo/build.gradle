@@ -22,36 +22,32 @@ android {
     }
 }
 
-dependencies {
-    compileOnly project(':checker-annotations')
-}
-
-// you have to pass the annotation class names to be used by the Fenum checker
-def annotations = [
-        'FolderId',
-        'MessageId',
-].collect { name -> 'com.github.karlicoss.checker_example_annotations.' + name }
-
 configurations {
-    checkerFrameworkJavac {
-        description = 'a customization of the OpenJDK javac compiler with additional support for type annotations'
-    }
-    checkerFrameworkAnnotatedJDK {
-        description = 'a copy of JDK classes with Checker Framework type qualifers inserted'
-    }
+    // TODO extend from something???
     checkerFramework {
         description = 'The Checker Framework: custom pluggable types for Java'
     }
 }
 
+// you have to pass the annotation class names to be used by the Fenum checker
+// TODO this should be automated, but initially ok to hardcode
+def annotations = [
+        'FolderId',
+        'MessageId',
+].collect { name -> 'com.github.karlicoss.fenum_android_demo.checker_example_annotations.' + name }
+
+
 dependencies {
     def checkerFrameworkVersion = '2.4.0'
-    def jdkVersion = JavaVersion.current().isJava7() ? 'jdk7' : 'jdk8'
-    checkerFrameworkAnnotatedJDK "org.checkerframework:${jdkVersion}:${checkerFrameworkVersion}"
-    checkerFrameworkJavac "org.checkerframework:compiler:${checkerFrameworkVersion}"
+    // TODO figure out which of these are actually necessary...
+    implementation "org.checkerframework:checker-qual:${checkerFrameworkVersion}"
+    annotationProcessor "org.checkerframework:checker:${checkerFrameworkVersion}"
     checkerFramework "org.checkerframework:checker:${checkerFrameworkVersion}"
-    checkerFrameworkJavac project(':checker-annotations')
-    checkerFramework project(':checker-annotations')
+}
+
+import static groovy.json.JsonOutput.*
+def pprint(s) {
+    print prettyPrint(toJson(s))
 }
 
 project.afterEvaluate {
@@ -67,24 +63,45 @@ project.afterEvaluate {
     }
 
     variants.all { variant ->
-        def compileTask = variant.javaCompile
+        def compiledFenumsDir = file(new File(project.buildDir, 'fenums')) // TODO better name?
 
+        def compileFenumsTask = project.task(
+                "compileFenums${variant.name.capitalize()}",
+                type: JavaCompile,
+        ) {
+            // TODO output which annotations were detected
+            source = [
+                    // TODO better detection?
+                    "src/main/java/com/github/karlicoss/fenum_android_demo/checker_example_annotations/FolderId.java",
+                    "src/main/java/com/github/karlicoss/fenum_android_demo/checker_example_annotations/MessageId.java"
+            ].collect { path -> project.file(path) }
+            destinationDir = compiledFenumsDir
+            classpath = files(configurations.checkerFramework.asPath)
+        }
+
+        def compileTask = variant.javaCompiler
         /*
             Fenum checker is basically default JavaCompileTask with some additional compiler arguments.
             I don't want to mess with the original task, so I copy it first.
-            TODO does someone know a better way of copying task? Let me know! Couldn't find any cloning method.
+            TODO is there a better way of copying task? Let me know! Couldn't find any cloning method.
          */
         def fenumTask = project.task(
                 "checkFenums${variant.name.capitalize()}",
                 type: JavaCompile,
-                dependsOn: compileTask.getTaskDependencies()
+                dependsOn: [
+                        compileTask.getTaskDependencies(),
+                        compileTask, // TODO not sure why, should be unnecessary, but fails without it
+                        compileFenumsTask, // to provide annotations for annotation processor
+                ]
         ) {
+            // TODO don't need to compile the annotations again here? But for simplicity, ok now to compile everything
             source = compileTask.source
             classpath = compileTask.classpath
             destinationDir = new File(project.buildDir, 'checker-classes-ignore')
             options.compilerArgs = compileTask.options.compilerArgs
             options.bootClasspath = compileTask.options.bootClasspath
         }
+
         /*
             Now, configure Checker Framework for this new task
             Based on official Gradle example
@@ -93,13 +110,12 @@ project.afterEvaluate {
         fenumTask.options.compilerArgs += [
             '-processor', 'org.checkerframework.checker.fenum.FenumChecker',
             '-Aquals=' + annotations.join(','),
-            '-processorpath', "${configurations.checkerFramework.asPath}",
-//            '-Awarns', // uncomment to turn Checker Framework errors into warnings
-            "-Xbootclasspath/p:${configurations.checkerFrameworkAnnotatedJDK.asPath}"
+
+            '-processorpath',
+            [
+                    "${configurations.checkerFramework.asPath}",
+                    compiledFenumsDir,
+            ].join(':'),
         ]
-        fenumTask.options.bootClasspath = (
-                System.getProperty("sun.boot.class.path") + ":" +
-                "${configurations.checkerFrameworkJavac.asPath}" + ":"
-        ) + fenumTask.options.bootClasspath
     }
 }

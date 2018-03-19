@@ -1,4 +1,4 @@
-package com.github.karlicoss.checker_example_annotations;
+package com.github.karlicoss.fenum_android_demo.checker_example_annotations;
 
 
 import org.checkerframework.checker.fenum.qual.FenumTop;

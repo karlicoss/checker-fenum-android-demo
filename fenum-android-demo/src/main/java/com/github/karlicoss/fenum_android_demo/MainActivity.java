@@ -4,8 +4,8 @@ import android.app.Activity;
 import android.database.Cursor;
 import android.util.Log;
 
-import com.github.karlicoss.checker_example_annotations.FolderId;
-import com.github.karlicoss.checker_example_annotations.MessageId;
+import com.github.karlicoss.fenum_android_demo.checker_example_annotations.FolderId;
+import com.github.karlicoss.fenum_android_demo.checker_example_annotations.MessageId;
 
 import java.util.Collection;
 
