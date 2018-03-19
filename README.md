@@ -34,7 +34,7 @@ the Fenum checker helps you.
 With Fenum checker you can essentially get type synonyms which Java lacks and do the following
 (see [MainActivity.java example](fenum-android-demo/src/main/java/com/github/karlicoss/fenum_android_demo/MainActivity.java) for a full example):
 
-1. Define your own annotation (see [FolderId.java](checker-annotations/src/main/java/com/github/karlicoss/checker_example_annotations/FolderId.java))
+1. Define your own annotation (see [FolderId.java](checker-annotations/src/main/java/com/github/karlicoss/com.github.karlicoss.fenum_android_demo.checker_example_annotations/FolderId.java))
     
     ```
     @Documented
